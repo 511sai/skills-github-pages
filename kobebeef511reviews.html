@@ -42,16 +42,13 @@
         <span class="star" data-value="4">★</span>
         <span class="star" data-value="5">★</span>
     </div>
-
-    <p>ご意見をお聞かせください:<br>Leave your feedback:</p>
-    <textarea id="feedback" placeholder="Your feedback here..."></textarea><br>
     
     <button onclick="submitSurvey()">送信 / Submit</button>
     
     <div id="result" class="hidden"></div>
     
     <script>
-        const scriptURL = "https://script.google.com/macros/s/AKfycbzCl2ot02Idi40Fe7KUyMOAMkwMtwAhpIV4plpKattzmmaS4ODDZoY6c0l3SDKR3AeRkA/exec"; // Replace with your deployed script URL
+        const scriptURL = "https://script.google.com/macros/s/AKfycbzp83HQB013MmJp-hTH_Ta4BEXIfzhbuWWk5iwCAPYp4uTTSZRvl9Rpy-K8tqHBwoq_JA/exec"; // Replace with your actual script URL
 
         document.querySelectorAll('.stars').forEach(starGroup => {
             starGroup.addEventListener('click', function(e) {
@@ -71,32 +68,36 @@
 
         function submitSurvey() {
             let ratings = document.querySelectorAll('.stars');
-            let data = { feedback: document.getElementById('feedback').value };
+            let data = {};
             let allAboveThree = true;
-
+            
             ratings.forEach(rating => {
                 let question = rating.getAttribute('data-question');
                 let value = parseInt(rating.getAttribute('data-selected')) || 0;
                 data[question] = value;
                 if (value < 3) allAboveThree = false;
             });
+            
+            let result = document.getElementById('result');
+            if (allAboveThree) {
+                result.innerHTML = '<h3>レビューを投稿しませんか？<br>Would you like to leave a review?</h3><p><a href="https://www.google.com/search?q=kobe+beef+511" target="_blank">レビューを書く / Leave a Review</a></p>';
+            } else {
+                result.innerHTML = '<h3>ご満足いただけず申し訳ございません。<br>We are sorry you did not enjoy your time.</h3><p>改善のためにご意見をお聞かせください。<br>Please tell us what we could do better.</p><textarea id="feedback" placeholder="Your feedback here..."></textarea><br><button onclick="sendFeedback()">送信 / Send</button>';
+            }
+            result.classList.remove('hidden');
+        }
 
-            fetch(scriptURL, {
+        function sendFeedback() {
+            let feedback = document.getElementById('feedback').value;
+            let data = { feedback: feedback };
+            
+            fetch("https://script.google.com/macros/s/AKfycbwk7nB9OTbNGHN3_kbc6buobnEyXaMy76CJMXHD8QCrOXIgGnbI_glp06OYE9w8ufRBbQ/exec", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data)
-            }).then(response => response.text())
-              .then(responseText => {
-                  console.log(responseText);
-                  let result = document.getElementById('result');
-                  if (allAboveThree) {
-                      result.innerHTML = '<h3>レビューを投稿しませんか？<br>Would you like to leave a review?</h3><p><a href="https://g.page/r/CQWGnoIOJ_vVEBM/review" target="_blank">レビューを書く / Leave a Review</a></p>';
-                  } else {
-                      result.innerHTML = '<h3>ご満足いただけず申し訳ございません。<br>We are sorry you did not enjoy your time.</h3><p>ありがとうございます！ご意見をいただきました。</p>';
-                  }
-                  result.classList.remove('hidden');
-              })
-              .catch(error => console.error("Error:", error));
+            }).then(() => {
+                alert("Thank you for your feedback!");
+            });
         }
     </script>
 </body>
