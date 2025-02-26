@@ -91,7 +91,7 @@
             let feedback = document.getElementById('feedback').value;
             let data = { feedback: feedback };
             
-            fetch("YOUR_GOOGLE_APPS_SCRIPT_EMAIL_URL", {
+            fetch("https://script.google.com/macros/s/AKfycbyLvGGxViCkk6yzTXY_FVGpeY61DwWfFlkKl-OFJniUgJsaRvn3s1kbgxLIuPz0mHE/exec", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data)
