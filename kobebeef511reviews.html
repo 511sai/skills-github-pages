@@ -48,26 +48,24 @@
   <div id="result"></div>
   
   <script>
-    // Replace with your actual deployed Google Apps Script URL for logging to Google Sheets.
-    const sheetsURL = "https://script.google.com/macros/s/AKfycbwnLMKYwXGHU44YtxF9IHJfDjdbzv89-r7tI4talSK0ax6apVQhR49HzM2VtUzzwuw/exec";
+    // Replace with your actual deployed Google Apps Script URL
+    const sheetsURL = "https://script.google.com/macros/s/AKfycbw8CQ6QQPeoTO5-S--RlSuTiD-dhHE4E1VHZZtjyafjDtvr1SToltCXA2sPQDxFAJxp/exec";
     
-    // Attach click events for star selection
+    // Set up star rating interactions
     document.querySelectorAll('.stars').forEach(starGroup => {
       starGroup.addEventListener('click', function(e) {
         if (e.target.classList.contains('star')) {
           let rating = parseInt(e.target.getAttribute('data-value'));
-          // Update star colors
           Array.from(starGroup.children).forEach(star => {
             let starValue = parseInt(star.getAttribute('data-value'));
             star.classList.toggle('selected', starValue <= rating);
           });
-          // Store selected rating in the container's attribute
           starGroup.setAttribute('data-selected', rating);
         }
       });
     });
     
-    // When user submits the survey
+    // When the user submits the survey
     function submitSurvey() {
       const questions = ["food", "service", "discovery"];
       let data = {};
@@ -77,32 +75,32 @@
         const starGroup = document.querySelector(`.stars[data-question="${q}"]`);
         let rating = parseInt(starGroup.getAttribute('data-selected')) || 0;
         data[q] = rating;
-        if (rating < 3) {
-          allAboveThree = false;
-        }
+        if (rating < 3) { allAboveThree = false; }
       });
       
-      // Send data to Google Sheets via fetch (fire-and-forget)
+      // Send the data to the Google Apps Script endpoint using the updated fetch call
       fetch(sheetsURL, {
+        redirect: "follow",
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      }).catch(error => console.error("Error sending data to Sheets:", error));
-      
-      // Display result based on ratings
-      let resultDiv = document.getElementById("result");
-      if (allAboveThree) {
-        resultDiv.innerHTML = `
-          <h3>レビューを投稿しませんか？<br>Would you like to leave a review?</h3>
-          <p><a href="https://g.page/r/CQWGnoIOJ_vVEBM/review" target="_blank">レビューを書く / Leave a Review</a></p>
-        `;
-      } else {
-        resultDiv.innerHTML = `
-          <h3>ご満足いただけず申し訳ございません。<br>We are sorry you did not enjoy your time in your reestaurant.</h3>
-          <p>ご意見は <a href="mailto:info@kobebeef511.jp">info@kobebeef511.jp</a> までお送りください。<br>
-          Please let us know your opinion. <a href="mailto:info@kobebeef511.jp">info@kobebeef511.jp</a></p>
-        `;
-      }
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "text/plain;charset=utf-8" }
+      })
+      .then(() => {
+        let resultDiv = document.getElementById("result");
+        if (allAboveThree) {
+          resultDiv.innerHTML = `
+            <h3>レビューを投稿しませんか？<br>Would you like to leave a review?</h3>
+            <p><a href="https://g.page/r/CQWGnoIOJ_vVEBM/review" target="_blank">レビューを書く / Leave a Review</a></p>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <h3>ご満足いただけず申し訳ございません。<br>We are sorry you did not enjoy your time.</h3>
+            <p>ご意見は <a href="mailto:info@kobebeef511.jp">info@kobebeef511.jp</a> までお送りください。<br>
+            Please send your feedback to <a href="mailto:info@kobebeef511.jp">info@kobebeef511.jp</a></p>
+          `;
+        }
+      })
+      .catch(error => console.error("Error sending data:", error));
     }
   </script>
 </body>
