@@ -48,57 +48,30 @@
     <div id="result" class="hidden"></div>
     
     <script>
-        const scriptURL = "https://script.google.com/macros/library/d/1zJdRIbGoIeIlaxdEVgAsI86dwLfrnaVfRN_AO2n3OIt4Rb9YNbW8HYDC/1"; // Replace with your actual script URL
+    function sendFeedback() {
+        let feedback = document.getElementById('feedback').value;
+        let food = document.querySelector('.stars[data-question="food"]').getAttribute('data-selected') || "0";
+        let service = document.querySelector('.stars[data-question="service"]').getAttribute('data-selected') || "0";
+        let discovery = document.querySelector('.stars[data-question="discovery"]').getAttribute('data-selected') || "0";
 
-        document.querySelectorAll('.stars').forEach(starGroup => {
-            starGroup.addEventListener('click', function(e) {
-                if (e.target.classList.contains('star')) {
-                    let value = parseInt(e.target.getAttribute('data-value'));
-                    let stars = e.target.parentElement.children;
-                    for (let star of stars) {
-                        star.classList.remove('selected');
-                        if (parseInt(star.getAttribute('data-value')) <= value) {
-                            star.classList.add('selected');
-                        }
-                    }
-                    e.target.parentElement.setAttribute('data-selected', value);
-                }
-            });
-        });
+        let data = {
+            food: food,
+            service: service,
+            discovery: discovery,
+            feedback: feedback
+        };
 
-        function submitSurvey() {
-            let ratings = document.querySelectorAll('.stars');
-            let data = {};
-            let allAboveThree = true;
-            
-            ratings.forEach(rating => {
-                let question = rating.getAttribute('data-question');
-                let value = parseInt(rating.getAttribute('data-selected')) || 0;
-                data[question] = value;
-                if (value < 3) allAboveThree = false;
-            });
-            
-            let result = document.getElementById('result');
-            if (allAboveThree) {
-                result.innerHTML = '<h3>レビューを投稿しませんか？<br>Would you like to leave a review?</h3><p><a href="https://www.google.com/search?q=kobe+beef+511" target="_blank">レビューを書く / Leave a Review</a></p>';
-            } else {
-                result.innerHTML = '<h3>ご満足いただけず申し訳ございません。<br>We are sorry you did not enjoy your time.</h3><p>改善のためにご意見をお聞かせください。<br>Please tell us what we could do better.</p><textarea id="feedback" placeholder="Your feedback here..."></textarea><br><button onclick="sendFeedback()">送信 / Send</button>';
-            }
-            result.classList.remove('hidden');
-        }
+        fetch("https://script.google.com/macros/library/d/1zJdRIbGoIeIlaxdEVgAsI86dwLfrnaVfRN_AO2n3OIt4Rb9YNbW8HYDC/1", { 
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        }).then(response => response.text())
+          .then(text => {
+              alert("Thank you for your feedback!"); 
+              console.log(text);
+          }).catch(error => console.error("Error:", error));
+    }
+</script>
 
-        function sendFeedback() {
-            let feedback = document.getElementById('feedback').value;
-            let data = { feedback: feedback };
-            
-            fetch("https://script.google.com/macros/library/d/1zJdRIbGoIeIlaxdEVgAsI86dwLfrnaVfRN_AO2n3OIt4Rb9YNbW8HYDC/1", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
-            }).then(() => {
-                alert("Thank you for your feedback!");
-            });
-        }
-    </script>
 </body>
 </html>
