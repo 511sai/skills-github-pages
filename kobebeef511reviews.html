@@ -1,15 +1,104 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-　<title>"神戸牛511 - ご感想"</title>
-  <img src="thankyou.png" alt="picture" style="width: 25%;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kobe Beef 511 アンケート</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f5f5dc; }
+        .stars { display: flex; justify-content: center; }
+        .star { font-size: 30px; cursor: pointer; padding: 5px; }
+        .selected { color: gold; }
+        .hidden { display: none; }
+        textarea { width: 80%; height: 100px; margin-top: 10px; }
+    </style>
 </head>
 <body>
-  "神戸牛511にご来店いただき、誠にありがとうございます。
-  お食事はお楽しみいただけましたでしょうか。
+    <h2>神戸牛511での体験はいかがでしたか？<br>How was your experience at Kobe Beef 511?</h2>
+    
+    <p>料理はいかがでしたか？<br>Did you enjoy the food?</p>
+    <div class="stars" data-question="food">
+        <span class="star" data-value="1">★</span>
+        <span class="star" data-value="2">★</span>
+        <span class="star" data-value="3">★</span>
+        <span class="star" data-value="4">★</span>
+        <span class="star" data-value="5">★</span>
+    </div>
+    
+    <p>サービスはいかがでしたか？<br>How was our service?</p>
+    <div class="stars" data-question="service">
+        <span class="star" data-value="1">★</span>
+        <span class="star" data-value="2">★</span>
+        <span class="star" data-value="3">★</span>
+        <span class="star" data-value="4">★</span>
+        <span class="star" data-value="5">★</span>
+    </div>
+    
+    <p>当店をどのように見つけましたか？<br>How did you find our restaurant?</p>
+    <div class="stars" data-question="discovery">
+        <span class="star" data-value="1">★</span>
+        <span class="star" data-value="2">★</span>
+        <span class="star" data-value="3">★</span>
+        <span class="star" data-value="4">★</span>
+        <span class="star" data-value="5">★</span>
+    </div>
+    
+    <button onclick="submitSurvey()">送信 / Submit</button>
+    
+    <div id="result" class="hidden"></div>
+    
+    <script>
+        const scriptURL = "YOUR_GOOGLE_APPS_SCRIPT_URL"; // Replace with your actual script URL
 
-  とても楽しめた、楽しめた、あまり楽しめなかった、全く楽しめなかった
-  
-  差し支えなければ、簡単にご感想をお聞かせいただけますと幸いです。"
+        document.querySelectorAll('.stars').forEach(starGroup => {
+            starGroup.addEventListener('click', function(e) {
+                if (e.target.classList.contains('star')) {
+                    let value = parseInt(e.target.getAttribute('data-value'));
+                    let stars = e.target.parentElement.children;
+                    for (let star of stars) {
+                        star.classList.remove('selected');
+                        if (parseInt(star.getAttribute('data-value')) <= value) {
+                            star.classList.add('selected');
+                        }
+                    }
+                    e.target.parentElement.setAttribute('data-selected', value);
+                }
+            });
+        });
+
+        function submitSurvey() {
+            let ratings = document.querySelectorAll('.stars');
+            let data = {};
+            let allAboveThree = true;
+            
+            ratings.forEach(rating => {
+                let question = rating.getAttribute('data-question');
+                let value = parseInt(rating.getAttribute('data-selected')) || 0;
+                data[question] = value;
+                if (value < 3) allAboveThree = false;
+            });
+            
+            let result = document.getElementById('result');
+            if (allAboveThree) {
+                result.innerHTML = '<h3>レビューを投稿しませんか？<br>Would you like to leave a review?</h3><p><a href="https://www.google.com/search?q=kobe+beef+511" target="_blank">レビューを書く / Leave a Review</a></p>';
+            } else {
+                result.innerHTML = '<h3>ご満足いただけず申し訳ございません。<br>We are sorry you did not enjoy your time.</h3><p>改善のためにご意見をお聞かせください。<br>Please tell us what we could do better.</p><textarea id="feedback" placeholder="Your feedback here..."></textarea><br><button onclick="sendFeedback()">送信 / Send</button>';
+            }
+            result.classList.remove('hidden');
+        }
+
+        function sendFeedback() {
+            let feedback = document.getElementById('feedback').value;
+            let data = { feedback: feedback };
+            
+            fetch("YOUR_GOOGLE_APPS_SCRIPT_EMAIL_URL", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            }).then(() => {
+                alert("Thank you for your feedback!");
+            });
+        }
+    </script>
 </body>
 </html>
