@@ -1,2 +1,109 @@
+//サンプルファイル
 
-hello world
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kobe Beef 511 アンケート</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f5f5dc; }
+    .stars { display: inline-block; }
+    .star { font-size: 30px; cursor: pointer; padding: 5px; }
+    .selected { color: gold; }
+    #result { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h2>神戸牛511での体験はいかがでしたか？<br>How was your experience at Kobe Beef 511?</h2>
+  
+  <p>料理はいかがでしたか？<br>Did you enjoy the food?</p>
+  <div class="stars" data-question="food">
+    <span class="star" data-value="1">★</span>
+    <span class="star" data-value="2">★</span>
+    <span class="star" data-value="3">★</span>
+    <span class="star" data-value="4">★</span>
+    <span class="star" data-value="5">★</span>
+  </div>
+  
+  <p>サービスはいかがでしたか？<br>How was our service?</p>
+  <div class="stars" data-question="service">
+    <span class="star" data-value="1">★</span>
+    <span class="star" data-value="2">★</span>
+    <span class="star" data-value="3">★</span>
+    <span class="star" data-value="4">★</span>
+    <span class="star" data-value="5">★</span>
+  </div>
+  
+  <p>当店をどのように見つけましたか？<br>How did you find our restaurant?</p>
+  <div class="stars" data-question="discovery">
+    <span class="star" data-value="1">★</span>
+    <span class="star" data-value="2">★</span>
+    <span class="star" data-value="3">★</span>
+    <span class="star" data-value="4">★</span>
+    <span class="star" data-value="5">★</span>
+  </div>
+  
+  <br><br>
+  <button onclick="submitSurvey()">送信 / Submit</button>
+  
+  <div id="result"></div>
+  
+  <script>
+    // Replace with your actual deployed Google Apps Script URL
+    const sheetsURL = "https://script.google.com/macros/s/AKfycbyc7T8E3k6CxJWWrNjGE1kSBdFjnBg4UDajQeUJia8RUYlZy35To4z-MK5tnsQLLB6T/exec";
+    
+    // Set up star rating interactions
+    document.querySelectorAll('.stars').forEach(starGroup => {
+      starGroup.addEventListener('click', function(e) {
+        if (e.target.classList.contains('star')) {
+          let rating = parseInt(e.target.getAttribute('data-value'));
+          Array.from(starGroup.children).forEach(star => {
+            let starValue = parseInt(star.getAttribute('data-value'));
+            star.classList.toggle('selected', starValue <= rating);
+          });
+          starGroup.setAttribute('data-selected', rating);
+        }
+      });
+    });
+    
+    // When the user submits the survey
+    function submitSurvey() {
+      const questions = ["food", "service", "discovery"];
+      let data = {};
+      let allAboveThree = true;
+      
+      questions.forEach(q => {
+        const starGroup = document.querySelector(`.stars[data-question="${q}"]`);
+        let rating = parseInt(starGroup.getAttribute('data-selected')) || 0;
+        data[q] = rating;
+        if (rating < 3) { allAboveThree = false; }
+      });
+      
+      // Send the data to the Google Apps Script endpoint using the updated fetch call
+      fetch(sheetsURL, {
+        redirect: "follow",
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "text/plain;charset=utf-8" }
+      })
+      .then(() => {
+        let resultDiv = document.getElementById("result");
+        if (allAboveThree) {
+          resultDiv.innerHTML = `
+            <h3>レビューを投稿しませんか？<br>Would you like to leave a review?</h3>
+            <p><a href="https://g.page/r/CQWGnoIOJ_vVEBM/review" target="_blank">レビューを書く / Leave a Review</a></p>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <h3>ご満足いただけず申し訳ございません。<br>We are sorry you did not enjoy your time.</h3>
+            <p>ご意見は <a href="mailto:info@kobebeef511.jp">info@kobebeef511.jp</a> までお送りください。<br>
+            Please send your feedback to <a href="mailto:info@kobebeef511.jp">info@kobebeef511.jp</a></p>
+          `;
+        }
+      })
+      .catch(error => console.error("Error sending data:", error));
+    }
+  </script>
+</body>
+</html>
